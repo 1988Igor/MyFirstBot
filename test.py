@@ -7,8 +7,7 @@ import requests
 import json
 
 
-class ConvertionException(Exception):
-    pass
+
 
 # @bot.message_handler(commands=['start', 'help'])
 # def help(message: telebot.types.Message):
@@ -45,20 +44,21 @@ def currency(message):
         else:
                 msg = bot.send_message(message.chat.id, 'Введите корректные данные')
                 bot.register_next_step_handler(msg, currency)
-@bot.message_handler(commands=['conversion'])
-def operations(message: telebot.types.Message):
-    def eur(message):    
-        r = requests.get('https://www.cbr-xml-daily.ru/latest.js')
-        texts = json.loads(r.content)
-        Rates = texts.get('rates')
-        EUR = float(Rates.get('EUR'))
-        print(EUR)
-        amount = int(message.text) # конвертируем входящие данные в число
-        total = float(round((amount*EUR),2)) # находим нужное количество
-        result = f'{amount} рублей равно {total} EUR' # выводим результат
-        if type(amount) == str:
-            raise ConvertionException(f'Не удалось обработать количество {amount}')
-        bot.send_message(message.chat.id, result)
+
+def eur(message):    
+    r = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts = json.loads(r.content)
+    Rates = texts.get('rates')
+    EUR = float(Rates.get('EUR'))
+    print(EUR)
+    try:
+        amount = int(message.text) 
+    except:
+        bot.send_message(message.chat.id, " Вы ввели не число")
+    total = float(round((amount*EUR),2)) # находим нужное количество
+    result = f'{amount} рублей равно {total} EUR' # выводим результат
+   
+    bot.send_message(message.chat.id, result)
 
 def usd(message):
     r1 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
@@ -69,8 +69,7 @@ def usd(message):
     amount1 = int(message.text) # конвертируем входящие данные в число
     total1 = float(round((amount1*USD),2)) # находим нужное количество
     result1 = f'{amount1} рублей равно {total1} USD' # выводим результат
-    if type(amount1) == str:
-        raise ConvertionException(f'Не удалось обработать количество {amount1}')
+    
     bot.send_message(message.chat.id, result1)
 
 def azn(message):
@@ -82,8 +81,7 @@ def azn(message):
     amount2 = int(message.text) # конвертируем входящие данные в число
     total2 = float(round((amount2*AZN),2)) # находим нужное количество
     result2 = f'{amount2} рублей равно {total2} AZN' # выводим результат
-    if type(amount2) == str:
-        raise ConvertionException(f'Не удалось обработать количество {amount2}')
+   
     bot.send_message(message.chat.id, result2)
 
 
@@ -96,8 +94,7 @@ def chf(message):
     amount3 = int(message.text) # конвертируем входящие данные в число
     total3 = float(round((amount3*CHF),2)) # находим нужное количество
     result3 = f'{amount3} рублей равно {total3} CHF' # выводим результат
-    if type(amount3) == str:
-        raise ConvertionException(f'Не удалось обработать количество {amount3}')
+  
     bot.send_message(message.chat.id, result3)
 
 def _try(message):
@@ -109,8 +106,7 @@ def _try(message):
     amount4 = int(message.text) # конвертируем входящие данные в число
     total4 = float(round((amount4*TRY),2)) # находим нужное количество
     result4 = f'{amount4} рублей равно {total4} TRY' # выводим результат
-    if type(amount4) == str:
-        raise ConvertionException(f'Не удалось обработать количество {amount4}, введите сумму цифрами')
+    
     bot.send_message(message.chat.id, result4)
 
 def gbp(message):
@@ -122,8 +118,7 @@ def gbp(message):
     amount5 = int(message.text) # конвертируем входящие данные в число
     total5 = float(round((amount5*GBP),2)) # находим нужное количество
     result5 = f'{amount5} рублей равно {total5} GBP' # выводим результат
-    if type(amount5) == str:
-        raise ConvertionException(f'Не удалось обработать количество {amount5}, введите сумму цифрами ')
+   
     bot.send_message(message.chat.id, result5)
   
 
