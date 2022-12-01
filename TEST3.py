@@ -5,6 +5,8 @@ import json
 from telegram import *
 from telegram.ext import*
 from requests import*
+from datetime import date
+import datetime
 
 TOKEN = '5839806750:AAHa-DvgcG_BcCswZwkvpUTRaTpC9CEcCP4'
 bot = telebot.TeleBot(TOKEN)
@@ -34,6 +36,15 @@ def bot_message(message):
             markup.add(item1, item2, item3, item4, item5, item6, back)
             msg = bot.send_message(message.chat.id, 'Выберите валюту', reply_markup=markup)
             bot.register_next_step_handler(msg, currency)
+        elif message.text == '💱 Курсы валют':
+            msg2 = bot.send_message(message.chat.id, 'Нажмите еще раз')
+            bot.register_next_step_handler(msg2, Exchage_Rates)
+
+
+
+
+ 
+           
 
 def currency(message):
         if message.text == '€ EUR':
@@ -102,7 +113,7 @@ def chf(message):
     r3 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
     texts3 = json.loads(r3.content)
     Rates3 = texts3.get('rates')
-    CHF = float(Rates3.get('AZN'))
+    CHF = float(Rates3.get('CHF'))
     print(CHF)
     amount3 = int(message.text) # конвертируем входящие данные в число
     total3 = float(round((amount3*CHF),2)) # находим нужное количество
@@ -134,5 +145,25 @@ def gbp(message):
    
     bot.send_message(message.chat.id, result5)
   
+
+def Exchage_Rates(message):
+    r8 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts8 = json.loads(r8.content)
+    Rates8 = texts8.get('rates')
+    Valutes = str(round(Rates8.get('USD'),3))  +  f'USD '
+    Valutes1 =str(round(Rates8.get('EUR'),3))  +  f'EUR '
+    Valutes2 =str(round(Rates8.get('AZN'),3))  +  f'AZN '
+    Valutes3 =str(round(Rates8.get('CHF'),3))  +  f'CHF '
+    Valutes4 =str(round(Rates8.get('TRY'),3))  +  f'TRY'
+    Valutes5 =str(round(Rates8.get('GBP'),3))  +  f'GBP'
+    new_line = '\n'
+ 
+    all_currencies = f'1 рубль (RUB) на сегодняшний день {date.today()} равен : {new_line} {Valutes} {new_line} {Valutes1} {new_line} {Valutes2} {new_line} {Valutes3} {new_line} {Valutes4} {new_line}  {Valutes5}'
+     
+    bot.send_message(message.chat.id, all_currencies)
+
+
+
+
 
 bot.polling()
