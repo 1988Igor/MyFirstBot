@@ -1,100 +1,138 @@
+import telebot
+from telebot import types
 import requests
 import json
-import telebot
-from telebot import TeleBot
- 
-TOKEN = "5839806750:AAHa-DvgcG_BcCswZwkvpUTRaTpC9CEcCP4"
- 
-bot: TeleBot = telebot.TeleBot(TOKEN)
- 
-Mydict = {
-    "/eur": "EUR",
-    "/usd": "USD",
-    "/rub": "RUB",
-}
- 
-class ConvertionException(Exception):
-    pass
- 
-#первые команды
-@bot.message_handler(commands=['start', 'help'])
-def help(message: telebot.types.Message):
-    text = 'Валютные операции /conversion'
-    bot.reply_to(message,text)
- 
-#ЧАСТЬ 1
- 
-#  выводим на экран список операций и все актуальные  курсы
-@bot.message_handler(commands=['conversion'])
-def operations(message: telebot.types.Message):
-    text = 'Актуальные курсы:\n  /pln_to_usd \n  /pln_to_rub \n  /pln_to_eur \n  /usd_to_pln \n  /rub_to_pln \n  /eur_to_pln'
-    r1 = requests.get(
-        'http://api.nbp.pl/api/exchangerates/rates/a/eur/')  # запрос актуального среднего курса евро нац банка Польши
-    texts1 = json.loads(r1.content)  # конвертируем в читаемый формат
-    Rates1 = texts1.get('rates')  # убираем лишнее
-    EUR1 = str(Rates1[0].get('mid'))
-    r2 = requests.get(
-        'http://api.nbp.pl/api/exchangerates/rates/a/usd/')  # запрос актуального среднего курса доллара нац банка Польши
-    texts2 = json.loads(r2.content)  # конвертируем в читаемый формат
-    Rates2 = texts2.get('rates')  # убираем лишнее
-    USD1 = str(Rates2[0].get('mid'))
- 
-    r3 = requests.get(
-        'http://api.nbp.pl/api/exchangerates/rates/a/rub/')  # запрос актуального среднего курса рубля нац банка Польши
-    texts3 = json.loads(r3.content)  # конвертируем в читаемый формат
-    Rates3 = texts3.get('rates')  # убираем лишнее
-    RUB1 = str(Rates3[0].get('mid'))  # выводим только курс  в строковом формате иначе будет ошибка
-    Mydict = {
-        "eur": "",
-        "usd": "",
-        "rub": "",
-    }
-    Mydict["eur"] = EUR1
-    Mydict["usd"] = USD1
-    Mydict["rub"] = RUB1
-    for key in Mydict.keys():
-        text = '\n'.join((text, key, '->', Mydict[key]))
-    bot.reply_to(message, text)
- 
- 
-#ЧАСТЬ 2
- 
-#а теперь проходим конкретно по конвертациям
- 
-#конвертируем злотые в доллары
-@bot.message_handler(commands=['pln_to_usd'])
-def pln_to_usd(message):
-    bot.send_message(message.chat.id, "Введите количесто pln,которые вы хотите конвертировать в usd")
-    @bot.message_handler(content_types=['text',])
-    def plnusd(message):
-        r = requests.get('http://api.nbp.pl/api/exchangerates/rates/a/usd/')  # запрос актуального среднего курса доллара нац банка Польши
-        texts = json.loads(r.content)  # конвертируем в читаемый формат
-        Rates = texts.get('rates')  # убираем лишнее
-        USD = Rates[0].get('mid') # наш курс цифрой
-        amount = int(message.text) # конвертируем входящие данные в число
-        total = round((amount/USD),2) # находим нужное количество
-        result = f'{amount} pln это {total} usd' # выводим результат
-        if type(amount) == str:
-            raise ConvertionException(f'Не удалось обработать количество {amount}')
- 
-        bot.send_message(message.chat.id, result)
- 
- 
- 
-#конвертируем злотые в рубли
-@bot.message_handler(commands=['pln_to_rub'])
-def pln_to_rub(message):
-    bot.send_message(message.chat.id, "Введите количесто pln,которые вы хотите конвертировать в rub: ")
-    @bot.message_handler(content_types=['text', ])
-    def plnrub(message):
-        r4 = requests.get('http://api.nbp.pl/api/exchangerates/rates/a/rub/')  # запрос актуального среднего курса рубля нац банка Польши
-        texts4 = json.loads(r4.content)  # конвертируем в читаемый формат
-        Rates4 = texts4.get('rates')  # убираем лишнее
-        RUB4 = Rates4[0].get('mid')
-        amount4 = int(message.text)
-        total4 = round((amount4/RUB4),2)
-        result4 = f'{amount4} pln это {total4} rub'
-        bot.send_message(message.chat.id, result4)
- 
- 
-bot.polling(none_stop=True)
+from telegram import *
+from telegram.ext import*
+from requests import*
+
+TOKEN = '5839806750:AAHa-DvgcG_BcCswZwkvpUTRaTpC9CEcCP4'
+bot = telebot.TeleBot(TOKEN)
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup =types.ReplyKeyboardMarkup(resize_keyboard=True)
+    item1 = types.KeyboardButton('💱 Курсы валют')
+    item2 = types.KeyboardButton('💱 Конвертор валют')
+
+    markup.add(item1, item2)
+
+    bot.send_message(message.chat.id, 'Привет, {0.first_name}'. format(message.from_user), reply_markup=markup)
+
+@bot.message_handler(content_types=['text']) 
+def bot_message(message):
+    if message.chat.type == 'private':
+        if message.text == '💱 Конвертор валют':
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            back = types.KeyboardButton('Назад')
+            item1 = types.KeyboardButton('€ EUR')
+            item2 = types.KeyboardButton('$ USD')
+            item3 = types.KeyboardButton('₼ AZN')
+            item4 = types.KeyboardButton('₣ CHF')
+            item5 = types.KeyboardButton('₺ TRY')
+            item6 = types.KeyboardButton('£ GBP')
+            markup.add(item1, item2, item3, item4, item5, item6, back)
+            msg = bot.send_message(message.chat.id, 'Выберите валюту', reply_markup=markup)
+            bot.register_next_step_handler(msg, currency)
+
+def currency(message):
+        if message.text == '€ EUR':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях') 
+                bot.register_next_step_handler(msg, eur) 
+        elif message.text == '$ USD':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
+                bot.register_next_step_handler(msg, usd)
+        elif message.text == '₼ AZN':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
+                bot.register_next_step_handler(msg, azn)
+        elif message.text == '₣ CHF':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
+                bot.register_next_step_handler(msg, chf)
+        elif message.text == '₺ TRY':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
+                bot.register_next_step_handler(msg, _try)
+        elif message.text == '£ GBP':
+                msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
+                bot.register_next_step_handler(msg, gbp)
+        else:
+                msg = bot.send_message(message.chat.id, 'Введите корректные данные')
+                bot.register_next_step_handler(msg, currency)
+
+def eur(message):    
+    r = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts = json.loads(r.content)
+    Rates = texts.get('rates')
+    EUR = float(Rates.get('EUR'))
+    print(EUR)
+    try:
+        amount = int(message.text) 
+    except:
+        bot.send_message(message.chat.id, " Вы ввели не число")
+    total = float(round((amount*EUR),2)) # находим нужное количество
+    result = f'{amount} рублей  =  {total} EUR' # выводим результат
+   
+    bot.send_message(message.chat.id, result)
+
+def usd(message):
+    r1 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts1 = json.loads(r1.content)
+    Rates1 = texts1.get('rates')
+    USD = float(Rates1.get('USD'))
+    print(USD)
+    amount1 = int(message.text) # конвертируем входящие данные в число
+    total1 = float(round((amount1*USD),2)) # находим нужное количество
+    result1 = f'{amount1} рублей = {total1} USD' # выводим результат
+    
+    bot.send_message(message.chat.id, result1)
+
+def azn(message):
+    r2 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts2 = json.loads(r2.content)
+    Rates2 = texts2.get('rates')
+    AZN = float(Rates2.get('AZN'))
+    print(AZN)
+    amount2 = int(message.text) # конвертируем входящие данные в число
+    total2 = float(round((amount2*AZN),2)) # находим нужное количество
+    result2 = f'{amount2} рублей = {total2} AZN' # выводим результат
+   
+    bot.send_message(message.chat.id, result2)
+
+
+def chf(message):
+    r3 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts3 = json.loads(r3.content)
+    Rates3 = texts3.get('rates')
+    CHF = float(Rates3.get('AZN'))
+    print(CHF)
+    amount3 = int(message.text) # конвертируем входящие данные в число
+    total3 = float(round((amount3*CHF),2)) # находим нужное количество
+    result3 = f'{amount3} рублей = {total3} CHF' # выводим результат
+  
+    bot.send_message(message.chat.id, result3)
+
+def _try(message):
+    r4 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts4 = json.loads(r4.content)
+    Rates4 = texts4.get('rates')
+    TRY = float(Rates4.get('TRY'))
+    print(TRY)
+    amount4 = int(message.text) # конвертируем входящие данные в число
+    total4 = float(round((amount4*TRY),2)) # находим нужное количество
+    result4 = f'{amount4} рублей = {total4} TRY' # выводим результат
+    
+    bot.send_message(message.chat.id, result4)
+
+def gbp(message):
+    r5 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
+    texts5 = json.loads(r5.content)
+    Rates5 = texts5.get('rates')
+    GBP = float(Rates5.get('GBP'))
+    print(GBP)
+    amount5 = int(message.text) # конвертируем входящие данные в число
+    total5 = float(round((amount5*GBP),2)) # находим нужное количество
+    result5 = f'{amount5} рублей = {total5} GBP' # выводим результат
+   
+    bot.send_message(message.chat.id, result5)
+  
+
+bot.polling()
