@@ -10,7 +10,7 @@ import datetime
 
 TOKEN = '5839806750:AAHa-DvgcG_BcCswZwkvpUTRaTpC9CEcCP4'
 bot = telebot.TeleBot(TOKEN)
-
+new_line = '\n'
 @bot.message_handler(commands=['start'])
 def start(message):
     markup =types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -19,7 +19,7 @@ def start(message):
 
     markup.add(item1, item2)
 
-    bot.send_message(message.chat.id, 'Привет, {0.first_name}'. format(message.from_user), reply_markup=markup)
+    bot.send_message(message.chat.id, 'Привет 👋 , {0.first_name}! "\n" Ниже в меню можно выбрать тип информации который ты хочешь получить '. format(message.from_user), reply_markup=markup)
 
 @bot.message_handler(content_types=['text']) 
 def bot_message(message):
@@ -37,14 +37,12 @@ def bot_message(message):
             msg = bot.send_message(message.chat.id, 'Выберите валюту', reply_markup=markup)
             bot.register_next_step_handler(msg, currency)
         elif message.text == '💱 Курсы валют':
-            msg2 = bot.send_message(message.chat.id, 'Нажмите еще раз')
-            bot.register_next_step_handler(msg2, Exchage_Rates)
+            msg2 = bot.send_message(message.chat.id, 'Курсы валют')
+            bot.register_next_step_handler(msg2, Exchage_Rates, )
 
 
 
 
- 
-           
 
 def currency(message):
         if message.text == '€ EUR':
@@ -65,6 +63,11 @@ def currency(message):
         elif message.text == '£ GBP':
                 msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
                 bot.register_next_step_handler(msg, gbp)
+        elif message.text == 'Назад':
+                msg = bot.send_message(message.chat.id,' confirm one more time')
+                bot.register_next_step_handler(msg, start )
+                
+      
         else:
                 msg = bot.send_message(message.chat.id, 'Введите корректные данные')
                 bot.register_next_step_handler(msg, currency)
@@ -161,8 +164,6 @@ def Exchage_Rates(message):
     all_currencies = f'1 рубль (RUB) на сегодняшний день {date.today()} равен : {new_line} {Valutes} {new_line} {Valutes1} {new_line} {Valutes2} {new_line} {Valutes3} {new_line} {Valutes4} {new_line}  {Valutes5}'
      
     bot.send_message(message.chat.id, all_currencies)
-
-
 
 
 
