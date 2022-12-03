@@ -21,6 +21,20 @@ def start(message):
 
     bot.send_message(message.chat.id, 'Привет 👋 , {0.first_name}! "\n" Ниже в меню можно выбрать тип информации который ты хочешь получить '. format(message.from_user), reply_markup=markup)
 
+
+def main_menu(message):
+    markup =types.ReplyKeyboardMarkup(resize_keyboard=True)
+    item1 = types.KeyboardButton('💱 Курсы валют')
+    item2 = types.KeyboardButton('💱 Конвертор валют')
+
+    markup.add(item1, item2)
+
+    bot.send_message(message.chat.id, '{0.first_name} вы находитесь в основное меню '. format(message.from_user), reply_markup=markup)
+
+
+
+
+
 @bot.message_handler(content_types=['text']) 
 def bot_message(message):
     if message.chat.type == 'private':
@@ -37,14 +51,19 @@ def bot_message(message):
             msg = bot.send_message(message.chat.id, 'Выберите валюту', reply_markup=markup)
             bot.register_next_step_handler(msg, currency)
         elif message.text == '💱 Курсы валют':
-            msg2 = bot.send_message(message.chat.id, 'Курсы валют')
-            bot.register_next_step_handler(msg2, Exchage_Rates, )
+            Exchage_Rates(message)
+        else:
+                
+                currency(message)
+            # msg2 = bot.send_message(message.chat.id, 'h' )
+            # bot.register_next_step_handler(msg2, Exchage_Rates, )
 
 
 
 
 
 def currency(message):
+   
         if message.text == '€ EUR':
                 msg = bot.send_message(message.chat.id, 'Введите сумму в рублях') 
                 bot.register_next_step_handler(msg, eur) 
@@ -64,10 +83,9 @@ def currency(message):
                 msg = bot.send_message(message.chat.id, 'Введите сумму в рублях')
                 bot.register_next_step_handler(msg, gbp)
         elif message.text == 'Назад':
-                msg = bot.send_message(message.chat.id,' confirm one more time')
-                bot.register_next_step_handler(msg, start )
-                
-      
+            main_menu(message)
+                # msg = bot.send_message(message.chat.id,' confirm one more time')
+                # bot.register_next_step_handler(msg, start )
         else:
                 msg = bot.send_message(message.chat.id, 'Введите корректные данные')
                 bot.register_next_step_handler(msg, currency)
@@ -153,12 +171,12 @@ def Exchage_Rates(message):
     r8 = requests.get('https://www.cbr-xml-daily.ru/latest.js')
     texts8 = json.loads(r8.content)
     Rates8 = texts8.get('rates')
-    Valutes = str(round(Rates8.get('USD'),3))  +  f'USD '
-    Valutes1 =str(round(Rates8.get('EUR'),3))  +  f'EUR '
-    Valutes2 =str(round(Rates8.get('AZN'),3))  +  f'AZN '
-    Valutes3 =str(round(Rates8.get('CHF'),3))  +  f'CHF '
-    Valutes4 =str(round(Rates8.get('TRY'),3))  +  f'TRY'
-    Valutes5 =str(round(Rates8.get('GBP'),3))  +  f'GBP'
+    Valutes = str(round(Rates8.get('USD'),3))+"\b"f'USD '
+    Valutes1 =str(round(Rates8.get('EUR'),3))+"\b"f'EUR '
+    Valutes2 =str(round(Rates8.get('AZN'),3))+"\b"f'AZN '
+    Valutes3 =str(round(Rates8.get('CHF'),3))+"\b"f'CHF '
+    Valutes4 =str(round(Rates8.get('TRY'),3))+"\b"f'TRY'
+    Valutes5 =str(round(Rates8.get('GBP'),3))+"\b"f'GBP'
     new_line = '\n'
  
     all_currencies = f'1 рубль (RUB) на сегодняшний день {date.today()} равен : {new_line} {Valutes} {new_line} {Valutes1} {new_line} {Valutes2} {new_line} {Valutes3} {new_line} {Valutes4} {new_line}  {Valutes5}'
@@ -167,4 +185,4 @@ def Exchage_Rates(message):
 
 
 
-bot.polling()
+bot.polling(none_stop=True)
